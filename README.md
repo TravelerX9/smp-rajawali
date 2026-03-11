@@ -1,4 +1,9 @@
+# SMP RAJAWALI '96 - Website Alumni & Gallery
+
+![SMP RAJAWALI Preview](/public/galery/35.jpeg)
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
 
 ## Getting Started
 
