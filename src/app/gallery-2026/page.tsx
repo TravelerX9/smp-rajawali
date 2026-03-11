@@ -84,12 +84,23 @@ const GalleryPage = () => {
     const [filter, setFilter] = useState("All");
 
     const filterOptions = ["All", "Foto", "Video"];
-    const filteredItems = galleryItems.filter((item) => {
-        if (filter === "All") return true;
-        if (filter === "Foto") return item.type === "image";
-        if (filter === "Video") return item.type === "video";
-        return true;
-    });
+    const filteredItems = galleryItems
+        .filter((item) => {
+            if (filter === "All") return true;
+            if (filter === "Foto") return item.type === "image";
+            if (filter === "Video") return item.type === "video";
+            return true;
+        })
+        .sort((a, b) => {
+            // First sort by type
+            if (a.type === "image" && b.type === "video") return -1;
+            if (a.type === "video" && b.type === "image") return 1;
+
+            // Then sort by the numerical part of the id
+            const aNum = parseInt(a.id.replace(/\D/g, ""), 10) || 0;
+            const bNum = parseInt(b.id.replace(/\D/g, ""), 10) || 0;
+            return aNum - bNum;
+        });
 
     const [isZoomed, setIsZoomed] = useState(false);
     const [zoomOrigin, setZoomOrigin] = useState("center");
@@ -160,10 +171,10 @@ const GalleryPage = () => {
                     ))}
                 </div>
 
-                {/* Masonry-like Grid */}
+                {/* Grid Layout (Left-to-Right) */}
                 <motion.div
                     layout
-                    className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6"
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
                     <AnimatePresence mode="popLayout">
                         {filteredItems.map((item, index) => (
