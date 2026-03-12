@@ -113,8 +113,6 @@ const GalleryPage = () => {
             return aNum - bNum;
         });
 
-    const [isZoomed, setIsZoomed] = useState(false);
-    const [zoomOrigin, setZoomOrigin] = useState("center");
     const [columns, setColumns] = useState(3);
 
     useEffect(() => {
@@ -131,6 +129,8 @@ const GalleryPage = () => {
     const [scale, setScale] = useState(1);
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [zoomOrigin, setZoomOrigin] = useState("center");
+
+    const selectedItem = selectedItemIndex !== null ? filteredItems[selectedItemIndex] : null;
 
     const navigate = (direction: "prev" | "next") => {
         if (selectedItemIndex === null) return;
@@ -366,7 +366,7 @@ const GalleryPage = () => {
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                touchAction: 'none'
+                                                touchAction: scale > 1 ? 'none' : 'pan-y'
                                             }}
                                         >
                                             <motion.div
