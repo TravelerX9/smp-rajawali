@@ -244,10 +244,7 @@ const GalleryPage = () => {
                                                         />
                                                     </div>
                                                 )}
-                                                {/* Media Icon Overlay */}
-                                                <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md p-2 rounded-xl text-white">
-                                                    {item.type === "video" ? <VideoCameraIcon className="w-5 h-5" /> : <PhotoIcon className="w-5 h-5" />}
-                                                </div>
+
                                                 {/* Hover Info */}
                                                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                                     <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-1">{item.category}</p>
