@@ -214,8 +214,8 @@ body {
 }
 
 img {
-  user-drag: none;
-  -webkit-user-drag: none; /* For Safari */
-  user-select: none; /* Prevent selection */
-  -webkit-user-select: none; /* For Safari */
+  touch-action: pan-y;
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
