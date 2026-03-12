@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { PhotoIcon, VideoCameraIcon, XMarkIcon, SparklesIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
@@ -128,11 +128,14 @@ const GalleryPage = () => {
         return () => window.removeEventListener("resize", updateColumns);
     }, []);
 
-    const selectedItem = selectedItemIndex !== null ? filteredItems[selectedItemIndex] : null;
+    const [scale, setScale] = useState(1);
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [zoomOrigin, setZoomOrigin] = useState("center");
 
     const navigate = (direction: "prev" | "next") => {
         if (selectedItemIndex === null) return;
-        setIsZoomed(false); // Reset zoom on navigate
+        setScale(1); // Reset zoom on navigate
+        setPosition({ x: 0, y: 0 });
         if (direction === "next") {
             setSelectedItemIndex((selectedItemIndex + 1) % filteredItems.length);
         } else {
@@ -141,16 +144,45 @@ const GalleryPage = () => {
     };
 
     const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (isZoomed) {
-            setIsZoomed(false);
+        if (scale > 1) {
+            setScale(1);
+            setPosition({ x: 0, y: 0 });
             setZoomOrigin("center");
         } else {
             const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
             const x = ((e.clientX - left) / width) * 100;
             const y = ((e.clientY - top) / height) * 100;
             setZoomOrigin(`${x}% ${y}%`);
-            setIsZoomed(true);
+            setScale(2.5);
         }
+    };
+
+    // Helper for multi-touch pinch zoom
+    const lastPinchDistance = useRef(0);
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        if (e.touches.length === 2) {
+            lastPinchDistance.current = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+        }
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (e.touches.length === 2 && lastPinchDistance.current > 0) {
+            const distance = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            const delta = distance / lastPinchDistance.current;
+            setScale(prevScale => Math.min(Math.max(1, prevScale * delta), 5));
+            lastPinchDistance.current = distance;
+        }
+    };
+
+    const handleTouchEnd = () => {
+        lastPinchDistance.current = 0;
     };
 
     return (
@@ -312,19 +344,54 @@ const GalleryPage = () => {
                                     />
                                 ) : (
                                     <div
-                                        className={`relative w-full h-full flex items-center justify-center overflow-hidden ${isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
+                                        className={`relative w-full h-full flex items-center justify-center overflow-hidden ${scale > 1 ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
                                         onClick={handleImageClick}
+                                        onTouchStart={handleTouchStart}
+                                        onTouchMove={handleTouchMove}
+                                        onTouchEnd={handleTouchEnd}
+                                        onWheel={(e) => {
+                                            if (e.ctrlKey) {
+                                                const newScale = Math.min(Math.max(1, scale - e.deltaY * 0.01), 5);
+                                                setScale(newScale);
+                                            }
+                                        }}
                                     >
-                                        <Image
-                                            src={selectedItem.src}
-                                            alt={selectedItem.title}
-                                            fill
-                                            className="object-contain transition-transform duration-500 ease-in-out"
+                                        <motion.div
+                                            drag={scale > 1}
+                                            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                                            dragElastic={0.1}
                                             style={{
-                                                transform: isZoomed ? "scale(3)" : "scale(1)",
-                                                transformOrigin: zoomOrigin
+                                                width: '100%',
+                                                height: '100%',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                touchAction: 'none'
                                             }}
-                                        />
+                                        >
+                                            <motion.div
+                                                animate={{
+                                                    scale: scale,
+                                                    x: position.x,
+                                                    y: position.y,
+                                                }}
+                                                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                                style={{
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    position: 'relative',
+                                                    transformOrigin: zoomOrigin
+                                                }}
+                                            >
+                                                <Image
+                                                    src={selectedItem.src}
+                                                    alt={selectedItem.title}
+                                                    fill
+                                                    className="object-contain"
+                                                    draggable={false}
+                                                />
+                                            </motion.div>
+                                        </motion.div>
                                     </div>
                                 )}
                             </div>
